@@ -17,12 +17,12 @@ class LanScanUseCase @Inject constructor(
     private val arpResolver: ArpResolver
 ) {
     operator fun invoke(): Flow<LanScanState> = channelFlow {
-        val aliveIps = ipScanner.scan { count ->
+        val aliveHosts = ipScanner.scan { count ->
             trySend(LanScanState.Progress(count))
         }
-        val devices = aliveIps.map { ip ->
+        val devices = aliveHosts.map { (ip, name) ->
             Device(
-                name = ip,
+                name = name,
                 ipAddress = ip,
                 macAddress = arpResolver.resolve(ip)
             )

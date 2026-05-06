@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,14 +53,14 @@ class DeviceDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             pingUseCase(current)
-                .onSuccess { result ->
+                .catch { _pingMessage.value = "Ping失敗: ${it.message}" }
+                .collect { result ->
                     _pingMessage.value = if (result.reachable) {
-                        "到達可能 (${result.elapsedMs}ms)"
+                        "[${result.attemptNumber}] 到達可能 (${result.elapsedMs}ms)"
                     } else {
-                        "到達不可 (${result.elapsedMs}ms)"
+                        "[${result.attemptNumber}] 到達不可 (${result.elapsedMs}ms)"
                     }
                 }
-                .onFailure { _pingMessage.value = "Ping失敗: ${it.message}" }
             _isLoading.value = false
         }
     }

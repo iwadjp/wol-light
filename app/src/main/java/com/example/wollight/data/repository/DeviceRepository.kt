@@ -23,7 +23,8 @@ class DeviceRepository @Inject constructor(private val dao: DeviceDao) {
         ipAddress = ipAddress,
         macAddress = macAddress,
         broadcastAddress = broadcastAddress,
-        port = port
+        port = port,
+        isOnline = false
     )
 
     private fun Device.toEntity() = DeviceEntity(

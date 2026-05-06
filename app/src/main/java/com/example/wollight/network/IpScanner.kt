@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 class IpScanner @Inject constructor(@ApplicationContext private val context: Context) {
 
-    suspend fun scan(onProgress: (Int) -> Unit): List<String> = withContext(Dispatchers.IO) {
+    suspend fun scan(onProgress: (Int) -> Unit): List<Pair<String, String>> = withContext(Dispatchers.IO) {
         val prefix = getSubnetPrefix() ?: return@withContext emptyList()
         val counter = AtomicInteger(0)
         coroutineScope {
@@ -29,7 +29,12 @@ class IpScanner @Inject constructor(@ApplicationContext private val context: Con
                     val alive = runCatching { InetAddress.getByName(ip).isReachable(300) }
                         .getOrDefault(false)
                     onProgress(counter.incrementAndGet())
-                    if (alive) ip else null
+                    if (alive) {
+                        val hostname = runCatching { InetAddress.getByName(ip).canonicalHostName }
+                            .getOrDefault(ip)
+                        val name = if (hostname == ip) ip else hostname
+                        Pair(ip, name)
+                    } else null
                 }
             }.awaitAll().filterNotNull()
         }
