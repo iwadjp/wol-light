@@ -17,7 +17,11 @@ import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
-class IpScanner @Inject constructor(@ApplicationContext private val context: Context) {
+class IpScanner @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val netBiosResolver: NetBiosResolver,
+    private val mdnsResolver: MdnsResolver,
+) {
 
     suspend fun scan(onProgress: (Int) -> Unit): List<Pair<String, String>> = withContext(Dispatchers.IO) {
         val prefix = getSubnetPrefix() ?: return@withContext emptyList()
@@ -30,14 +34,18 @@ class IpScanner @Inject constructor(@ApplicationContext private val context: Con
                         .getOrDefault(false)
                     onProgress(counter.incrementAndGet())
                     if (alive) {
-                        val hostname = runCatching { InetAddress.getByName(ip).canonicalHostName }
-                            .getOrDefault(ip)
-                        val name = if (hostname == ip) ip else hostname
+                        val name = resolveHostname(ip)
                         Pair(ip, name)
                     } else null
                 }
             }.awaitAll().filterNotNull()
         }
+    }
+
+    private suspend fun resolveHostname(ip: String): String = coroutineScope {
+        val netbios = async(Dispatchers.IO) { netBiosResolver.resolve(ip) }
+        val mdns = async(Dispatchers.IO) { mdnsResolver.resolve(ip) }
+        netbios.await() ?: mdns.await() ?: ip
     }
 
     private fun getSubnetPrefix(): String? =
