@@ -16,7 +16,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,7 +41,7 @@ fun DeviceListScreen(
     viewModel: DeviceListViewModel = hiltViewModel()
 ) {
     val devices by viewModel.devices.collectAsState()
-    val pingingIds by viewModel.pingingIds.collectAsState()
+    val onlineStatus by viewModel.onlineStatus.collectAsState()
     var deviceToDelete by remember { mutableStateOf<Device?>(null) }
 
     Scaffold(
@@ -73,20 +72,13 @@ fun DeviceListScreen(
                     .padding(innerPadding)
             ) {
                 items(devices, key = { it.id }) { device ->
+                    val status = onlineStatus[device.id]
                     ListItem(
                         leadingContent = {
-                            if (device.id in pingingIds) {
-                                Text(
-                                    "確認中...",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray
-                                )
-                            } else {
-                                Text(
-                                    "●",
-                                    color = if (device.isOnline) Color(0xFF4CAF50) else Color.Gray
-                                )
-                            }
+                            Text(
+                                "●",
+                                color = if (status == true) Color(0xFF4CAF50) else Color.Gray
+                            )
                         },
                         headlineContent = { Text(device.name) },
                         supportingContent = { Text(device.ipAddress) },

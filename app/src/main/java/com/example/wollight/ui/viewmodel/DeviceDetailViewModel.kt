@@ -3,6 +3,7 @@ package com.example.wollight.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.wollight.data.repository.DeviceRepository
+import com.example.wollight.data.repository.OnlineStatusStore
 import com.example.wollight.domain.usecase.PingUseCase
 import com.example.wollight.domain.usecase.WolUseCase
 import com.example.wollight.model.Device
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class DeviceDetailViewModel @Inject constructor(
     private val repository: DeviceRepository,
     private val wolUseCase: WolUseCase,
-    private val pingUseCase: PingUseCase
+    private val pingUseCase: PingUseCase,
+    private val onlineStatusStore: OnlineStatusStore
 ) : ViewModel() {
 
     private val _device = MutableStateFlow<Device?>(null)
@@ -64,6 +66,8 @@ class DeviceDetailViewModel @Inject constructor(
                     _pingResults.update { it + result }
                 }
             _isPinging.value = false
+            val anyReachable = _pingResults.value.any { it.reachable }
+            onlineStatusStore.update(current.id, anyReachable)
         }
     }
 
