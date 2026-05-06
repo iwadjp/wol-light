@@ -64,10 +64,9 @@ class DeviceDetailViewModel @Inject constructor(
                 .catch { }
                 .collect { result ->
                     _pingResults.update { it + result }
+                    onlineStatusStore.updateWithResult(current.id, result.reachable)
                 }
             _isPinging.value = false
-            val anyReachable = _pingResults.value.any { it.reachable }
-            onlineStatusStore.update(current.id, anyReachable)
         }
     }
 
