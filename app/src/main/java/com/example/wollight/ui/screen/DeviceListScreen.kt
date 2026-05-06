@@ -16,6 +16,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.wollight.model.Device
 import com.example.wollight.ui.viewmodel.DeviceListViewModel
@@ -40,6 +42,7 @@ fun DeviceListScreen(
     viewModel: DeviceListViewModel = hiltViewModel()
 ) {
     val devices by viewModel.devices.collectAsState()
+    val pingingIds by viewModel.pingingIds.collectAsState()
     var deviceToDelete by remember { mutableStateOf<Device?>(null) }
 
     Scaffold(
@@ -71,6 +74,20 @@ fun DeviceListScreen(
             ) {
                 items(devices, key = { it.id }) { device ->
                     ListItem(
+                        leadingContent = {
+                            if (device.id in pingingIds) {
+                                Text(
+                                    "確認中...",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray
+                                )
+                            } else {
+                                Text(
+                                    "●",
+                                    color = if (device.isOnline) Color(0xFF4CAF50) else Color.Gray
+                                )
+                            }
+                        },
                         headlineContent = { Text(device.name) },
                         supportingContent = { Text(device.ipAddress) },
                         trailingContent = {
