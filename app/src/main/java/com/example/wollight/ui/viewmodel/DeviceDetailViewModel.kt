@@ -6,11 +6,13 @@ import com.example.wollight.data.repository.DeviceRepository
 import com.example.wollight.domain.usecase.PingUseCase
 import com.example.wollight.domain.usecase.WolUseCase
 import com.example.wollight.model.Device
+import com.example.wollight.network.PingResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,8 +32,11 @@ class DeviceDetailViewModel @Inject constructor(
     private val _wolMessage = MutableStateFlow<String?>(null)
     val wolMessage: StateFlow<String?> = _wolMessage.asStateFlow()
 
-    private val _pingMessage = MutableStateFlow<String?>(null)
-    val pingMessage: StateFlow<String?> = _pingMessage.asStateFlow()
+    private val _pingResults = MutableStateFlow<List<PingResult>>(emptyList())
+    val pingResults: StateFlow<List<PingResult>> = _pingResults.asStateFlow()
+
+    private val _isPinging = MutableStateFlow(false)
+    val isPinging: StateFlow<Boolean> = _isPinging.asStateFlow()
 
     fun loadDevice(device: Device) {
         _device.value = device
@@ -51,17 +56,14 @@ class DeviceDetailViewModel @Inject constructor(
     fun sendPing() {
         val current = _device.value ?: return
         viewModelScope.launch {
-            _isLoading.value = true
+            _pingResults.value = emptyList()
+            _isPinging.value = true
             pingUseCase(current)
-                .catch { _pingMessage.value = "Ping失敗: ${it.message}" }
+                .catch { }
                 .collect { result ->
-                    _pingMessage.value = if (result.reachable) {
-                        "[${result.attemptNumber}] 到達可能 (${result.elapsedMs}ms)"
-                    } else {
-                        "[${result.attemptNumber}] 到達不可 (${result.elapsedMs}ms)"
-                    }
+                    _pingResults.update { it + result }
                 }
-            _isLoading.value = false
+            _isPinging.value = false
         }
     }
 
@@ -73,5 +75,4 @@ class DeviceDetailViewModel @Inject constructor(
     }
 
     fun clearWolMessage() { _wolMessage.value = null }
-    fun clearPingMessage() { _pingMessage.value = null }
 }
