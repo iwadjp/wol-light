@@ -13,6 +13,9 @@ interface DeviceDao {
     @Query("SELECT * FROM devices ORDER BY name ASC")
     fun getAll(): Flow<List<DeviceEntity>>
 
+    @Query("SELECT * FROM devices WHERE id = :id")
+    fun getById(id: Long): Flow<DeviceEntity?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(device: DeviceEntity)
 

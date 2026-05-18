@@ -9,6 +9,7 @@ import com.example.wollight.domain.usecase.WolUseCase
 import com.example.wollight.model.Device
 import com.example.wollight.network.PingResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,8 +41,17 @@ class DeviceDetailViewModel @Inject constructor(
     private val _isPinging = MutableStateFlow(false)
     val isPinging: StateFlow<Boolean> = _isPinging.asStateFlow()
 
-    fun loadDevice(device: Device) {
-        _device.value = device
+    private var loadJob: Job? = null
+    private var pingJob: Job? = null
+
+    fun loadDevice(deviceId: Long) {
+        if (_device.value?.id == deviceId) return
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            repository.getById(deviceId).collect { device ->
+                _device.value = device
+            }
+        }
     }
 
     fun sendWol() {
@@ -57,7 +67,8 @@ class DeviceDetailViewModel @Inject constructor(
 
     fun sendPing() {
         val current = _device.value ?: return
-        viewModelScope.launch {
+        pingJob?.cancel()
+        pingJob = viewModelScope.launch {
             _pingResults.value = emptyList()
             _isPinging.value = true
             pingUseCase(current)
@@ -73,9 +84,14 @@ class DeviceDetailViewModel @Inject constructor(
     fun updateDevice(updated: Device) {
         viewModelScope.launch {
             repository.update(updated)
-            _device.value = updated
         }
     }
 
     fun clearWolMessage() { _wolMessage.value = null }
+
+    override fun onCleared() {
+        super.onCleared()
+        pingJob?.cancel()
+        loadJob?.cancel()
+    }
 }
