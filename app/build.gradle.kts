@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.wollight"
+    namespace = "com.iwadjp.wollight"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.wollight"
+        applicationId = "com.iwadjp.wollight"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

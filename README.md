@@ -102,7 +102,7 @@ DeviceListScreen（起動画面）
 | DI | Hilt |
 | DB | Room |
 | 最小SDK | API 26 (Android 8.0) |
-| ターゲットSDK | API 34 (Android 14) |
+| ターゲットSDK | API 36 (Android 16) |
 
 ---
 
@@ -136,6 +136,11 @@ UDP はコネクションレスのため、Magic Packet が対象PCに届いた�
 ### 同一LAN内のみ有効
 WoL はブロードキャストパケットのため、同一LAN内のデバイスのみが対象。外部ネットワークから起動する場合は VPN またはポートフォワードの設定が別途必要。
 
+### WoL の成否は対象PC側の設定に依存する
+WolLight は標準的な WoL Magic Packet を送信するだけであり、対象PCが実際に起動できるかどうかは、対象PC側の BIOS/UEFI 設定・NIC の WoL 対応・Windows の電源管理設定（特に高速スタートアップ）に依存する。WolLight 側の不具合ではなく、環境依存の制約として扱う。
+
+動作確認環境では、休止状態からの起動は成功しているが、シャットダウン状態からの起動は確認環境では成功していない。
+
 ---
 
 ## 将来の改善候補
@@ -147,6 +152,42 @@ WoL はブロードキャストパケットのため、同一LAN内のデバイ�
 
 ---
 
+## インストール
+
+GitHub の Release ページから APK をダウンロードし、サイドロードでインストールする。Google Play での配布は行っていない。
+
+現在は Pixel 10a でのみ動作確認済み。他の端末での動作は未検証。
+
+---
+
+## ビルドと検証
+
+```powershell
+# Debug APKを作成
+.\gradlew.bat assembleDebug
+
+# JVM unit testを実行
+.\gradlew.bat testDebugUnitTest
+
+# Android lintを実行
+.\gradlew.bat lintDebug
+```
+
+macOS/Linux では `.\gradlew.bat` を `./gradlew` に読み替える。
+
+---
+
+## プライバシー / ネットワーク動作
+
+WolLight が行う通信は同一LAN内のみで、外部サーバーへのデータ送信は行わない。
+
+- WoL Magic Packet の送信、Ping（到達確認）、ホスト名解決（NetBIOS / mDNS / ARP）はいずれも同一LAN内の通信のみ
+- analytics・telemetry・クラッシュレポート機能は実装していない
+- 外部HTTPサービスへの通信、クラウド同期は行わない
+- 登録したデバイス情報（名前・IPアドレス・MACアドレス・ブロードキャストアドレス・ポート）は端末内のローカルDB（Room）にのみ保存される
+
+---
+
 ## ライセンス
 
-Private
+[MIT License](LICENSE)
