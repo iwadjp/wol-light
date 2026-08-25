@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -44,7 +45,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.iwadjp.wollight.BuildConfig
 import com.iwadjp.wollight.model.Device
+import com.iwadjp.wollight.ui.viewmodel.DebugStaleIpState
 import com.iwadjp.wollight.ui.viewmodel.DeviceDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +64,9 @@ fun DeviceDetailScreen(
     val wolMessage by viewModel.wolMessage.collectAsState()
     val pingResults by viewModel.pingResults.collectAsState()
     val isPinging by viewModel.isPinging.collectAsState()
+    val isRecoveringIp by viewModel.isRecoveringIp.collectAsState()
+    val ipDriftCandidate by viewModel.ipDriftCandidate.collectAsState()
+    val debugStaleIpState by viewModel.debugStaleIpState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -173,6 +179,49 @@ fun DeviceDetailScreen(
                 }
             }
 
+            if (BuildConfig.DEBUG) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Switch(
+                                checked = debugStaleIpState is DebugStaleIpState.On ||
+                                    debugStaleIpState is DebugStaleIpState.Generating,
+                                onCheckedChange = { viewModel.setDebugStaleIpSimulation(it) }
+                            )
+                            Text("Debug: 仮のstale IPをシミュレート", fontSize = 12.sp)
+                        }
+                        when (val state = debugStaleIpState) {
+                            is DebugStaleIpState.On -> Text(
+                                "Testing with temporary IP: ${state.staleIpAddress}\n" +
+                                    "（登録情報は変更していません。Ping/検索だけがこのIPを使います）",
+                                fontSize = 11.sp
+                            )
+                            DebugStaleIpState.Generating -> Text("候補IPを確認しています...", fontSize = 11.sp)
+                            DebugStaleIpState.Unavailable -> Text(
+                                "安全な候補IPが見つからなかったため無効です。",
+                                fontSize = 11.sp
+                            )
+                            DebugStaleIpState.Off -> Unit
+                        }
+                    }
+                }
+            }
+
+            if (isRecoveringIp) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.height(16.dp).width(16.dp))
+                    Text("デバイスを再検索しています...", fontSize = 13.sp)
+                }
+            }
+
             if (pingResults.isNotEmpty() || isPinging) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(10.dp)) {
@@ -209,6 +258,31 @@ fun DeviceDetailScreen(
                 }
             }
         }
+    }
+
+    ipDriftCandidate?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissIpDriftCandidate() },
+            title = { Text("IPアドレスが変わっています") },
+            text = {
+                Text(
+                    "このデバイスは別のIPアドレスで見つかりました。\n\n" +
+                        "旧: ${candidate.oldIpAddress}\n" +
+                        "新: ${candidate.newIpAddress}\n\n" +
+                        "登録IPアドレスを更新しますか？"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmIpDriftUpdate() }) {
+                    Text("更新")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissIpDriftCandidate() }) {
+                    Text("キャンセル")
+                }
+            }
+        )
     }
 
     if (showEditDialog) {
