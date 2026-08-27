@@ -136,6 +136,9 @@ UDP はコネクションレスのため、Magic Packet が対象PCに届いた�
 ### 同一LAN内のみ有効
 WoL はブロードキャストパケットのため、同一LAN内のデバイスのみが対象。外部ネットワークから起動する場合は VPN またはポートフォワードの設定が別途必要。
 
+### IP アドレス復旧（v1.0.1〜）
+IP アドレス復旧には登録済み MAC アドレスが必要。復旧はデバイス詳細画面での Ping 試行が失敗した場合にのみ実行され、登録アドレスの更新には明示的な確認操作が必要。
+
 ### WoL の成否は対象PC側の設定に依存する
 WolLight は標準的な WoL Magic Packet を送信するだけであり、対象PCが実際に起動できるかどうかは、対象PC側の BIOS/UEFI 設定・NIC の WoL 対応・Windows の電源管理設定（特に高速スタートアップ）に依存する。WolLight 側の不具合ではなく、環境依存の制約として扱う。
 
@@ -154,8 +157,8 @@ WolLight は標準的な WoL Magic Packet を送信するだけであり、対�
 
 ## インストール
 
-1. [v1.0.0 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.0) ページを開く。
-2. Assets から `wol-light-v1.0.0-android.apk` をダウンロードする。
+1. [v1.0.1 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.1) ページを開く。
+2. Assets から `wol-light-v1.0.1-android.apk` をダウンロードする。
 3. ダウンロードした APK をタップしてインストールする（サイドロード）。Google Play での配布は行っていない。
 
 Android では、このソースからのアプリインストールを許可するよう求められる場合がある。また Google Play Protect や Android が、Google Play 外で配布された APK に対して警告を表示することがある。インストールを進める前に、ダウンロードした APK が上記の公式 GitHub Release から取得したものであることを確認すること。
