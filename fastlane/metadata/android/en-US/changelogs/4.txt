@@ -1,0 +1,4 @@
+- No runtime behaviour changes. Wake-on-LAN, LAN scan, ping and stale-IP
+  recovery are identical to v1.0.1 / v1.0.2.
+- The release signing workflow now preserves the existing APK alignment, so
+  F-Droid can verify the build as reproducible from the tagged source commit.
