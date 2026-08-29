@@ -1,0 +1,1 @@
+Wake-on-LAN app with device list, LAN scan and stale-IP recovery. LAN-only.

@@ -1,0 +1,6 @@
+- Added recovery for when a registered device's IP address changes.
+- After a Wake-on-LAN or manual ping fails to reach the saved IP address,
+  WolLight runs one LAN scan and looks for the same device by its MAC address.
+- If the device is found at a new IP address, the saved address is updated only
+  after you confirm.
+- Wake packet behaviour itself is unchanged.

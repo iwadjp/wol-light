@@ -1,0 +1,44 @@
+WolLight sends Wake-on-LAN magic packets to PCs on the same local network and
+keeps a small list of the devices you wake regularly.
+
+Features:
+
+* Wake-on-LAN: sends a standard magic packet as a UDP broadcast on the local
+  network, with a configurable port.
+* Registered devices: save the devices you wake often with a name, MAC address,
+  broadcast address and port. The list is kept on the device.
+* LAN scan: detects the current Wi-Fi subnet and probes addresses in parallel to
+  list reachable hosts, attempting host-name resolution over NetBIOS and mDNS.
+* Online / offline indication: a per-device indicator based on ping results,
+  refreshed on app start, on return to the foreground and on manual ping. The
+  state only changes after two consecutive matching results, to reduce false
+  readings from transient packet loss.
+* Ping: sends ten pings at one-second intervals and shows each result plus a
+  summary.
+* Stale-IP recovery: if a Wake-on-LAN or manual ping fails to reach a registered
+  device's saved IP address, WolLight runs one LAN scan and looks for the same
+  device by its registered MAC address. If it is found at a different address,
+  the saved IP address is updated only after you confirm.
+
+Privacy and network behaviour:
+
+* All traffic stays on the local network. Magic packets, pings and host-name
+  resolution (NetBIOS, mDNS, ARP) are local-network only.
+* No account, no cloud sync, no external HTTP services.
+* No analytics, telemetry or crash reporting.
+* Registered device details are stored only in a local database on the device.
+
+Limitations:
+
+* Local network only. Wake-on-LAN uses broadcast packets, so only devices on the
+  same LAN can be woken. Waking a PC across the internet needs a separate VPN or
+  port-forwarding setup that WolLight does not provide.
+* The target PC must already support and be configured for Wake-on-LAN in its
+  BIOS/UEFI, network adapter driver and (on Windows) power settings.
+* Whether the PC actually wakes depends on that PC's hardware and settings, not
+  on WolLight. Waking from full shutdown (S5) in particular depends on the PC,
+  its NIC and the OS power configuration.
+* UDP is connectionless, so delivery of a magic packet cannot be confirmed. Use
+  ping to check whether the PC has come up.
+
+Requires Android 8.0 (API 26) or later and a Wi-Fi connection.

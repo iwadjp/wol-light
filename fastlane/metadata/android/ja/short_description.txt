@@ -1,0 +1,1 @@
+同一LAN内のPCをWake-on-LANで起動。デバイス一覧・LANスキャン・IP復旧に対応。
