@@ -1,0 +1,4 @@
+- No functional changes. Wake-on-LAN, LAN scan, ping and IP recovery behave
+  exactly as in v1.0.1.
+- This release only fixes the release build process so the published APK is
+  reproducible from the tagged source commit.
