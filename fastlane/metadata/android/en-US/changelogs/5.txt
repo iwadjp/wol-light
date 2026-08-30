@@ -1,0 +1,4 @@
+- Added the official WolLight app icon.
+- Added adaptive icon and themed (monochrome) icon support.
+- No runtime behaviour changes. Wake-on-LAN, LAN scan, ping and stale-IP
+  recovery are identical to v1.0.3.

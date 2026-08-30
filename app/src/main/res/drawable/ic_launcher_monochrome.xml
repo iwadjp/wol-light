@@ -5,28 +5,27 @@
     android:viewportWidth="100"
     android:viewportHeight="100">
     <!--
-      WolLight 1A-B "起動シグナル" adaptive foreground.
-      Shape geometry ported verbatim from the approved production asset
-      wollight-icon.svg (viewBox 0 0 100 100): amber (#F6A352) device plus two
-      wake signals. The 100-unit design space is mapped 1:1 onto the 108dp
-      adaptive layer (uniform scale 1.08, no translation); the motif already
-      sits inside the adaptive safe zone at this scale.
+      WolLight 1A-B "起動シグナル" themed (monochrome) icon.
+      Same shape geometry as ic_launcher_foreground (device + two wake signals),
+      ported verbatim from wollight-icon.svg and reduced to a single tint colour.
+      The outer wake signal keeps its 0.5 alpha so the two-signal depth relation
+      of the approved design is preserved. The system applies the theme tint.
     -->
     <path
         android:name="device"
-        android:fillColor="#F6A352"
+        android:fillColor="#FFFFFF"
         android:pathData="M33,50 L45,50 A5,5 0 0 1 50,55 L50,63 A5,5 0 0 1 45,68 L33,68 A5,5 0 0 1 28,63 L28,55 A5,5 0 0 1 33,50 Z" />
     <path
         android:name="wake_signal_inner"
         android:fillColor="#00000000"
-        android:strokeColor="#F6A352"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="8"
         android:strokeLineCap="round"
         android:pathData="M53.5,51.24 A16,16 0 0 0 45.76,43.5" />
     <path
         android:name="wake_signal_outer"
         android:fillColor="#00000000"
-        android:strokeColor="#F6A352"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="6"
         android:strokeLineCap="round"
         android:strokeAlpha="0.5"
