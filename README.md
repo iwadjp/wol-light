@@ -13,9 +13,6 @@ regularly. It was built to replace the Wake-on-LAN feature of Fing.
   is Japanese)
 - Works on the local network only; no account and no cloud service
 
-> The English UI is in the current source. The v1.0.4 release APK linked below
-> has a Japanese-only UI; the English UI ships with the next release.
-
 ### Features
 
 - **LAN scan**: detects the current Wi-Fi subnet, probes addresses 1–254 in
@@ -64,8 +61,8 @@ regularly. It was built to replace the Wake-on-LAN feature of Fing.
 
 ### Install
 
-1. Open the [v1.0.4 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.4) page.
-2. Download `wol-light-v1.0.4-android.apk` from Assets.
+1. Open the [v1.0.5 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.5) page.
+2. Download `wol-light-v1.0.5-android.apk` from Assets.
 3. Open the APK to install it (sideload). WolLight is not distributed on Google
    Play.
 
@@ -248,8 +245,8 @@ WolLight は標準的な WoL Magic Packet を送信するだけであり、対�
 
 ## インストール
 
-1. [v1.0.4 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.4) ページを開く。
-2. Assets から `wol-light-v1.0.4-android.apk` をダウンロードする。
+1. [v1.0.5 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.5) ページを開く。
+2. Assets から `wol-light-v1.0.5-android.apk` をダウンロードする。
 3. ダウンロードした APK をタップしてインストールする（サイドロード）。Google Play での配布は行っていない。
 
 Android では、このソースからのアプリインストールを許可するよう求められる場合がある。また Google Play Protect や Android が、Google Play 外で配布された APK に対して警告を表示することがある。インストールを進める前に、ダウンロードした APK が上記の公式 GitHub Release から取得したものであることを確認すること。

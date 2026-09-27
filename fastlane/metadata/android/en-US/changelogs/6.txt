@@ -1,0 +1,4 @@
+- Added an English user interface. English is the default language;
+  Japanese is shown when the device language is Japanese.
+- The Japanese UI wording is unchanged.
+- No changes to Wake-on-LAN, LAN scan, ping or stale-IP recovery behaviour.
