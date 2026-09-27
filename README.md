@@ -1,5 +1,96 @@
 # wol-light
 
+[English](#english) | [日本語](#日本語)
+
+## English
+
+WolLight is a Wake-on-LAN app for Android. It sends Wake-on-LAN magic packets to
+PCs on the same local network and keeps a small list of the devices you wake
+regularly. It was built to replace the Wake-on-LAN feature of Fing.
+
+- Platform: Android 8.0 (API 26) or later, Wi-Fi connection required
+- UI languages: English (default) and Japanese (used when the device language
+  is Japanese)
+- Works on the local network only; no account and no cloud service
+
+> The English UI is in the current source. The v1.0.4 release APK linked below
+> has a Japanese-only UI; the English UI ships with the next release.
+
+### Features
+
+- **LAN scan**: detects the current Wi-Fi subnet, probes addresses 1–254 in
+  parallel and lists reachable hosts. Host names are looked up over NetBIOS and
+  mDNS; the IP address is shown when no name is found.
+- **Device registration**: register a device from the scan results with a name
+  of your choice. Name, MAC address, broadcast address and port can be edited,
+  and devices can be deleted. The list is kept on the device across restarts.
+- **Wake-on-LAN**: sends a standard 102-byte magic packet as a UDP broadcast
+  (default `255.255.255.255`, port `9`; the port is configurable).
+- **Ping**: sends ten pings at one-second intervals, shows each result with its
+  response time, then a summary (successes and average time).
+- **Online / offline indicator**: shown per device in the list, based on ping
+  results on app start, on return to the foreground and on manual ping. The
+  state changes only after two consecutive matching results, to avoid false
+  readings from transient packet loss.
+- **Stale-IP recovery**: if a registered device cannot be reached at its saved
+  IP address, WolLight runs one LAN scan and looks for the same MAC address. If
+  the device is found at a different address, the saved IP address is updated
+  only after you confirm. A registered MAC address is required.
+
+### Limitations
+
+- Local network only. Wake-on-LAN uses broadcast packets, so only devices on the
+  same LAN can be woken. Waking a PC over the internet needs a separate VPN or
+  port-forwarding setup that WolLight does not provide.
+- Whether the PC wakes depends on the PC: Wake-on-LAN must be enabled in
+  BIOS/UEFI and the network adapter, and on Windows disabling Fast Startup is
+  recommended. In the test environment, waking from hibernation worked; waking
+  from full shutdown did not.
+- UDP is connectionless, so delivery of a magic packet cannot be confirmed. Use
+  ping to check whether the PC has come up.
+- Automatic host-name lookup often fails on home networks (NetBIOS is disabled
+  on Windows 10/11, mDNS needs Bonjour). Give each device a name when you
+  register it.
+- Tested only on a Pixel 10a so far.
+
+### Privacy and network behaviour
+
+- All traffic stays on the local network: magic packets, pings and host-name
+  resolution (NetBIOS, mDNS, ARP).
+- No analytics, telemetry or crash reporting.
+- No external HTTP services and no cloud sync.
+- Registered device details (name, IP address, MAC address, broadcast address,
+  port) are stored only in a local database (Room) on the device.
+
+### Install
+
+1. Open the [v1.0.4 Release](https://github.com/iwadjp/wol-light/releases/tag/v1.0.4) page.
+2. Download `wol-light-v1.0.4-android.apk` from Assets.
+3. Open the APK to install it (sideload). WolLight is not distributed on Google
+   Play.
+
+Android may ask you to allow installs from this source, and Google Play Protect
+may warn about APKs from outside Google Play. Make sure the APK comes from the
+official GitHub Release above.
+
+### Build
+
+```powershell
+.\gradlew.bat assembleDebug      # debug APK
+.\gradlew.bat testDebugUnitTest  # JVM unit tests
+.\gradlew.bat lintDebug          # Android lint
+```
+
+On macOS/Linux, use `./gradlew` instead of `.\gradlew.bat`.
+
+### License
+
+[MIT License](LICENSE)
+
+---
+
+## 日本語
+
 Fing の Wake on LAN 機能を代替する Android アプリ。
 
 ---
