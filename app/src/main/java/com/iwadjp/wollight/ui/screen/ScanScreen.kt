@@ -34,7 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.iwadjp.wollight.R
 import com.iwadjp.wollight.model.Device
 import com.iwadjp.wollight.ui.viewmodel.ScanViewModel
 
@@ -54,10 +56,10 @@ fun ScanScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("LANスキャン") },
+                title = { Text(stringResource(R.string.scan_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "戻る")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 }
             )
@@ -71,7 +73,7 @@ fun ScanScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (isScanning) {
-                Text("スキャン中... ($progress / 254)")
+                Text(stringResource(R.string.scan_progress, progress, 254))
                 LinearProgressIndicator(
                     progress = { progress / 254f },
                     modifier = Modifier.fillMaxWidth()
@@ -80,14 +82,14 @@ fun ScanScreen(
                     onClick = { viewModel.stopScan() },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
-                    Text("中断")
+                    Text(stringResource(R.string.scan_stop))
                 }
             } else {
                 Button(
                     onClick = { viewModel.startScan() },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
-                    Text("スキャン開始")
+                    Text(stringResource(R.string.scan_start))
                 }
             }
 
@@ -97,14 +99,14 @@ fun ScanScreen(
                         ListItem(
                             headlineContent = { Text(device.ipAddress) },
                             supportingContent = {
-                                Text(device.macAddress.ifEmpty { "MAC未取得" })
+                                Text(device.macAddress.ifEmpty { stringResource(R.string.scan_mac_unknown) })
                             },
                             trailingContent = {
                                 TextButton(onClick = {
                                     deviceToRegister = device
                                     deviceName = device.ipAddress
                                 }) {
-                                    Text("登録")
+                                    Text(stringResource(R.string.scan_register))
                                 }
                             }
                         )
@@ -116,7 +118,7 @@ fun ScanScreen(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("スキャン開始ボタンを押してください")
+                    Text(stringResource(R.string.scan_empty_hint))
                 }
             }
         }
@@ -125,12 +127,12 @@ fun ScanScreen(
     deviceToRegister?.let { device ->
         AlertDialog(
             onDismissRequest = { deviceToRegister = null },
-            title = { Text("デバイス名を入力") },
+            title = { Text(stringResource(R.string.scan_register_dialog_title)) },
             text = {
                 OutlinedTextField(
                     value = deviceName,
                     onValueChange = { deviceName = it },
-                    label = { Text("デバイス名") },
+                    label = { Text(stringResource(R.string.common_device_name)) },
                     singleLine = true
                 )
             },
@@ -143,12 +145,12 @@ fun ScanScreen(
                         }
                     }
                 ) {
-                    Text("登録")
+                    Text(stringResource(R.string.scan_register))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { deviceToRegister = null }) {
-                    Text("キャンセル")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )

@@ -1,3 +1,68 @@
 <resources>
     <string name="app_name">WolLight</string>
+
+    <!-- Common -->
+    <string name="common_back">Back</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_device_name">Device name</string>
+
+    <!-- Device list screen -->
+    <string name="list_title">Devices</string>
+    <string name="list_scan">Scan</string>
+    <string name="list_empty">No devices registered</string>
+    <string name="list_mac_not_set">MAC not set</string>
+    <string name="list_delete_title">Confirm deletion</string>
+    <string name="list_delete_message">Delete \"%1$s\"?</string>
+    <string name="list_delete_confirm">Delete</string>
+
+    <!-- LAN scan screen -->
+    <string name="scan_title">LAN scan</string>
+    <string name="scan_progress">Scanning… (%1$d / %2$d)</string>
+    <string name="scan_stop">Stop</string>
+    <string name="scan_start">Start scan</string>
+    <string name="scan_mac_unknown">MAC unknown</string>
+    <string name="scan_register">Register</string>
+    <string name="scan_empty_hint">Tap Start scan to begin</string>
+    <string name="scan_register_dialog_title">Enter device name</string>
+
+    <!-- Device detail screen -->
+    <string name="detail_loading">Loading…</string>
+    <string name="detail_edit">Edit</string>
+    <string name="detail_label_name">Name</string>
+    <string name="detail_label_ip">IP</string>
+    <string name="detail_label_mac">MAC</string>
+    <string name="detail_label_broadcast">Send to</string>
+    <string name="detail_label_port">Port</string>
+    <string name="detail_mac_not_set">Not set</string>
+    <string name="detail_mac_missing_hint">MAC address is not set. Set it with the Edit button.</string>
+    <string name="detail_send_wol">Send WoL</string>
+    <string name="detail_ping">Ping</string>
+    <string name="detail_pinging">Pinging…</string>
+    <string name="detail_recovering_ip">Searching for the device again…</string>
+    <string name="detail_ping_failed">Fail</string>
+    <string name="detail_ping_summary">%1$d/10 succeeded  Avg %2$d ms</string>
+    <string name="detail_ping_summary_none">0/10 succeeded</string>
+
+    <!-- Device detail: DEBUG-only stale IP simulation -->
+    <string name="detail_debug_stale_ip_toggle">Debug: simulate a temporary stale IP</string>
+    <string name="detail_debug_stale_ip_active">Testing with temporary IP: %1$s\n(Registered data is unchanged. Only ping/search use this IP.)</string>
+    <string name="detail_debug_stale_ip_generating">Checking candidate IPs…</string>
+    <string name="detail_debug_stale_ip_unavailable">Disabled because no safe candidate IP was found.</string>
+
+    <!-- Device detail: IP drift dialog -->
+    <string name="ip_drift_title">IP address has changed</string>
+    <string name="ip_drift_message">This device was found at a different IP address.\n\nOld: %1$s\nNew: %2$s\n\nUpdate the registered IP address?</string>
+    <string name="ip_drift_update">Update</string>
+
+    <!-- Device detail: edit dialog -->
+    <string name="edit_title">Edit device</string>
+    <string name="edit_mac_label">MAC address (AA:BB:CC:DD:EE:FF)</string>
+    <string name="edit_broadcast_label">Broadcast address</string>
+    <string name="edit_port_label">Port</string>
+    <string name="edit_save">Save</string>
+
+    <!-- Device detail: snackbar messages -->
+    <string name="message_wol_sent">WoL packet sent</string>
+    <string name="message_wol_failed">Send failed: %1$s</string>
+    <string name="message_ip_update_failed">Failed to update IP address: %1$s</string>
 </resources>

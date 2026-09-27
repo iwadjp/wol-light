@@ -39,6 +39,16 @@ sealed class DebugStaleIpState {
     data object Unavailable : DebugStaleIpState()
 }
 
+/**
+ * Snackbar message shown on the detail screen. Holds the meaning only; the screen
+ * resolves it to a localized string. [detail] is OS/library error text, shown as-is.
+ */
+sealed class DeviceDetailMessage {
+    data object WolSent : DeviceDetailMessage()
+    data class WolFailed(val detail: String?) : DeviceDetailMessage()
+    data class IpUpdateFailed(val detail: String?) : DeviceDetailMessage()
+}
+
 @HiltViewModel
 class DeviceDetailViewModel @Inject constructor(
     private val repository: DeviceRepository,
@@ -55,8 +65,8 @@ class DeviceDetailViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _wolMessage = MutableStateFlow<String?>(null)
-    val wolMessage: StateFlow<String?> = _wolMessage.asStateFlow()
+    private val _wolMessage = MutableStateFlow<DeviceDetailMessage?>(null)
+    val wolMessage: StateFlow<DeviceDetailMessage?> = _wolMessage.asStateFlow()
 
     private val _pingResults = MutableStateFlow<List<PingResult>>(emptyList())
     val pingResults: StateFlow<List<PingResult>> = _pingResults.asStateFlow()
@@ -93,8 +103,8 @@ class DeviceDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             val result = wolUseCase(current)
-            result.onSuccess { _wolMessage.value = "WoL送信完了" }
-                .onFailure { _wolMessage.value = "送信失敗: ${it.message}" }
+            result.onSuccess { _wolMessage.value = DeviceDetailMessage.WolSent }
+                .onFailure { _wolMessage.value = DeviceDetailMessage.WolFailed(it.message) }
             _isLoading.value = false
 
             // Wake送信自体の成否と、送信後の起動確認Pingの成否は別問題として扱う。
@@ -207,7 +217,7 @@ class DeviceDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val updated = current.copy(ipAddress = candidate.newIpAddress)
             val updateResult = runCatching { repository.update(updated) }
-            updateResult.onFailure { _wolMessage.value = "IPアドレスの更新に失敗しました: ${it.message}" }
+            updateResult.onFailure { _wolMessage.value = DeviceDetailMessage.IpUpdateFailed(it.message) }
             if (updateResult.isSuccess) {
                 pingJob?.cancel()
                 pingJob = viewModelScope.launch { executePingBurst(updated) }

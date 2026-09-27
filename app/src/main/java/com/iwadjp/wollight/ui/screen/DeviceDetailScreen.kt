@@ -40,14 +40,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iwadjp.wollight.BuildConfig
+import com.iwadjp.wollight.R
 import com.iwadjp.wollight.model.Device
 import com.iwadjp.wollight.ui.viewmodel.DebugStaleIpState
+import com.iwadjp.wollight.ui.viewmodel.DeviceDetailMessage
 import com.iwadjp.wollight.ui.viewmodel.DeviceDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,10 +73,18 @@ fun DeviceDetailScreen(
     val debugStaleIpState by viewModel.debugStaleIpState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
 
     LaunchedEffect(wolMessage) {
         wolMessage?.let {
-            snackbarHostState.showSnackbar(it)
+            val text = when (it) {
+                DeviceDetailMessage.WolSent -> resources.getString(R.string.message_wol_sent)
+                is DeviceDetailMessage.WolFailed ->
+                    resources.getString(R.string.message_wol_failed, it.detail.toString())
+                is DeviceDetailMessage.IpUpdateFailed ->
+                    resources.getString(R.string.message_ip_update_failed, it.detail.toString())
+            }
+            snackbarHostState.showSnackbar(text)
             viewModel.clearWolMessage()
         }
     }
@@ -81,10 +93,10 @@ fun DeviceDetailScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("読み込み中...") },
+                    title = { Text(stringResource(R.string.detail_loading)) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "戻る")
+                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                         }
                     }
                 )
@@ -114,7 +126,7 @@ fun DeviceDetailScreen(
                 title = { Text(displayed.name) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "戻る")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
@@ -125,7 +137,7 @@ fun DeviceDetailScreen(
                         editPort = displayed.port.toString()
                         showEditDialog = true
                     }) {
-                        Icon(Icons.Default.Edit, contentDescription = "編集")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.detail_edit))
                     }
                 }
             )
@@ -145,16 +157,19 @@ fun DeviceDetailScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    InfoRow("名前", displayed.name)
-                    InfoRow("IP", displayed.ipAddress)
-                    InfoRow("MAC", displayed.macAddress.ifEmpty { "未設定" })
-                    InfoRow("送信先", displayed.broadcastAddress)
-                    InfoRow("ポート", displayed.port.toString())
+                    InfoRow(stringResource(R.string.detail_label_name), displayed.name)
+                    InfoRow(stringResource(R.string.detail_label_ip), displayed.ipAddress)
+                    InfoRow(
+                        stringResource(R.string.detail_label_mac),
+                        displayed.macAddress.ifEmpty { stringResource(R.string.detail_mac_not_set) }
+                    )
+                    InfoRow(stringResource(R.string.detail_label_broadcast), displayed.broadcastAddress)
+                    InfoRow(stringResource(R.string.detail_label_port), displayed.port.toString())
                 }
             }
 
             if (displayed.macAddress.isEmpty()) {
-                Text("MACアドレスが未設定です。編集ボタンから設定してください。")
+                Text(stringResource(R.string.detail_mac_missing_hint))
             }
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -168,14 +183,14 @@ fun DeviceDetailScreen(
                     enabled = !isLoading && displayed.macAddress.isNotEmpty(),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("WoL送信")
+                    Text(stringResource(R.string.detail_send_wol))
                 }
                 OutlinedButton(
                     onClick = { viewModel.sendPing() },
                     enabled = !isPinging,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(if (isPinging) "Ping実行中..." else "Ping")
+                    Text(stringResource(if (isPinging) R.string.detail_pinging else R.string.detail_ping))
                 }
             }
 
@@ -192,17 +207,19 @@ fun DeviceDetailScreen(
                                     debugStaleIpState is DebugStaleIpState.Generating,
                                 onCheckedChange = { viewModel.setDebugStaleIpSimulation(it) }
                             )
-                            Text("Debug: 仮のstale IPをシミュレート", fontSize = 12.sp)
+                            Text(stringResource(R.string.detail_debug_stale_ip_toggle), fontSize = 12.sp)
                         }
                         when (val state = debugStaleIpState) {
                             is DebugStaleIpState.On -> Text(
-                                "Testing with temporary IP: ${state.staleIpAddress}\n" +
-                                    "（登録情報は変更していません。Ping/検索だけがこのIPを使います）",
+                                stringResource(R.string.detail_debug_stale_ip_active, state.staleIpAddress),
                                 fontSize = 11.sp
                             )
-                            DebugStaleIpState.Generating -> Text("候補IPを確認しています...", fontSize = 11.sp)
+                            DebugStaleIpState.Generating -> Text(
+                                stringResource(R.string.detail_debug_stale_ip_generating),
+                                fontSize = 11.sp
+                            )
                             DebugStaleIpState.Unavailable -> Text(
-                                "安全な候補IPが見つからなかったため無効です。",
+                                stringResource(R.string.detail_debug_stale_ip_unavailable),
                                 fontSize = 11.sp
                             )
                             DebugStaleIpState.Off -> Unit
@@ -218,7 +235,7 @@ fun DeviceDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     CircularProgressIndicator(modifier = Modifier.height(16.dp).width(16.dp))
-                    Text("デバイスを再検索しています...", fontSize = 13.sp)
+                    Text(stringResource(R.string.detail_recovering_ip), fontSize = 13.sp)
                 }
             }
 
@@ -230,7 +247,7 @@ fun DeviceDetailScreen(
                             Row(modifier = Modifier.fillMaxWidth()) {
                                 row.forEach { result ->
                                     val icon = if (result.reachable) "✅" else "❌"
-                                    val label = if (result.reachable) "${result.elapsedMs}ms" else "NG"
+                                    val label = if (result.reachable) "${result.elapsedMs}ms" else stringResource(R.string.detail_ping_failed)
                                     Text(
                                         text = "$icon ${result.attemptNumber}: $label",
                                         modifier = Modifier.weight(1f).padding(vertical = 2.dp),
@@ -248,9 +265,9 @@ fun DeviceDetailScreen(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                             val summary = if (successCount > 0) {
                                 val avgMs = pingResults.filter { it.reachable }.map { it.elapsedMs }.average().toLong()
-                                "${successCount}/10成功  平均${avgMs}ms"
+                                stringResource(R.string.detail_ping_summary, successCount, avgMs)
                             } else {
-                                "0/10成功"
+                                stringResource(R.string.detail_ping_summary_none)
                             }
                             Text(summary, fontSize = 13.sp, maxLines = 1)
                         }
@@ -263,23 +280,24 @@ fun DeviceDetailScreen(
     ipDriftCandidate?.let { candidate ->
         AlertDialog(
             onDismissRequest = { viewModel.dismissIpDriftCandidate() },
-            title = { Text("IPアドレスが変わっています") },
+            title = { Text(stringResource(R.string.ip_drift_title)) },
             text = {
                 Text(
-                    "このデバイスは別のIPアドレスで見つかりました。\n\n" +
-                        "旧: ${candidate.oldIpAddress}\n" +
-                        "新: ${candidate.newIpAddress}\n\n" +
-                        "登録IPアドレスを更新しますか？"
+                    stringResource(
+                        R.string.ip_drift_message,
+                        candidate.oldIpAddress,
+                        candidate.newIpAddress
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmIpDriftUpdate() }) {
-                    Text("更新")
+                    Text(stringResource(R.string.ip_drift_update))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissIpDriftCandidate() }) {
-                    Text("キャンセル")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -288,34 +306,34 @@ fun DeviceDetailScreen(
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("デバイス情報を編集") },
+            title = { Text(stringResource(R.string.edit_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
-                        label = { Text("デバイス名") },
+                        label = { Text(stringResource(R.string.common_device_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editMac,
                         onValueChange = { editMac = it },
-                        label = { Text("MACアドレス (AA:BB:CC:DD:EE:FF)") },
+                        label = { Text(stringResource(R.string.edit_mac_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editBroadcast,
                         onValueChange = { editBroadcast = it },
-                        label = { Text("ブロードキャストアドレス") },
+                        label = { Text(stringResource(R.string.edit_broadcast_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editPort,
                         onValueChange = { editPort = it },
-                        label = { Text("ポート") },
+                        label = { Text(stringResource(R.string.edit_port_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -335,12 +353,12 @@ fun DeviceDetailScreen(
                         showEditDialog = false
                     }
                 }) {
-                    Text("保存")
+                    Text(stringResource(R.string.edit_save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("キャンセル")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )

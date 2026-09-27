@@ -1,0 +1,68 @@
+<resources>
+    <string name="app_name">WolLight</string>
+
+    <!-- Common -->
+    <string name="common_back">戻る</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_device_name">デバイス名</string>
+
+    <!-- Device list screen -->
+    <string name="list_title">デバイス一覧</string>
+    <string name="list_scan">スキャン</string>
+    <string name="list_empty">デバイスが登録されていません</string>
+    <string name="list_mac_not_set">MAC未設定</string>
+    <string name="list_delete_title">削除の確認</string>
+    <string name="list_delete_message">「%1$s」を削除しますか？</string>
+    <string name="list_delete_confirm">削除</string>
+
+    <!-- LAN scan screen -->
+    <string name="scan_title">LANスキャン</string>
+    <string name="scan_progress">スキャン中... (%1$d / %2$d)</string>
+    <string name="scan_stop">中断</string>
+    <string name="scan_start">スキャン開始</string>
+    <string name="scan_mac_unknown">MAC未取得</string>
+    <string name="scan_register">登録</string>
+    <string name="scan_empty_hint">スキャン開始ボタンを押してください</string>
+    <string name="scan_register_dialog_title">デバイス名を入力</string>
+
+    <!-- Device detail screen -->
+    <string name="detail_loading">読み込み中...</string>
+    <string name="detail_edit">編集</string>
+    <string name="detail_label_name">名前</string>
+    <string name="detail_label_ip">IP</string>
+    <string name="detail_label_mac">MAC</string>
+    <string name="detail_label_broadcast">送信先</string>
+    <string name="detail_label_port">ポート</string>
+    <string name="detail_mac_not_set">未設定</string>
+    <string name="detail_mac_missing_hint">MACアドレスが未設定です。編集ボタンから設定してください。</string>
+    <string name="detail_send_wol">WoL送信</string>
+    <string name="detail_ping">Ping</string>
+    <string name="detail_pinging">Ping実行中...</string>
+    <string name="detail_recovering_ip">デバイスを再検索しています...</string>
+    <string name="detail_ping_failed">NG</string>
+    <string name="detail_ping_summary">%1$d/10成功  平均%2$dms</string>
+    <string name="detail_ping_summary_none">0/10成功</string>
+
+    <!-- Device detail: DEBUG-only stale IP simulation -->
+    <string name="detail_debug_stale_ip_toggle">Debug: 仮のstale IPをシミュレート</string>
+    <string name="detail_debug_stale_ip_active">Testing with temporary IP: %1$s\n（登録情報は変更していません。Ping/検索だけがこのIPを使います）</string>
+    <string name="detail_debug_stale_ip_generating">候補IPを確認しています...</string>
+    <string name="detail_debug_stale_ip_unavailable">安全な候補IPが見つからなかったため無効です。</string>
+
+    <!-- Device detail: IP drift dialog -->
+    <string name="ip_drift_title">IPアドレスが変わっています</string>
+    <string name="ip_drift_message">このデバイスは別のIPアドレスで見つかりました。\n\n旧: %1$s\n新: %2$s\n\n登録IPアドレスを更新しますか？</string>
+    <string name="ip_drift_update">更新</string>
+
+    <!-- Device detail: edit dialog -->
+    <string name="edit_title">デバイス情報を編集</string>
+    <string name="edit_mac_label">MACアドレス (AA:BB:CC:DD:EE:FF)</string>
+    <string name="edit_broadcast_label">ブロードキャストアドレス</string>
+    <string name="edit_port_label">ポート</string>
+    <string name="edit_save">保存</string>
+
+    <!-- Device detail: snackbar messages -->
+    <string name="message_wol_sent">WoL送信完了</string>
+    <string name="message_wol_failed">送信失敗: %1$s</string>
+    <string name="message_ip_update_failed">IPアドレスの更新に失敗しました: %1$s</string>
+</resources>

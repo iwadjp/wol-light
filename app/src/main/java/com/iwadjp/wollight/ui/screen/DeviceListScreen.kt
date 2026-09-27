@@ -31,9 +31,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.iwadjp.wollight.R
 import com.iwadjp.wollight.model.Device
 import com.iwadjp.wollight.ui.viewmodel.DeviceListViewModel
 
@@ -62,10 +64,10 @@ fun DeviceListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("デバイス一覧") },
+                title = { Text(stringResource(R.string.list_title)) },
                 actions = {
                     IconButton(onClick = onScanClick) {
-                        Icon(Icons.Default.Search, contentDescription = "スキャン")
+                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.list_scan))
                     }
                 }
             )
@@ -78,7 +80,7 @@ fun DeviceListScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("デバイスが登録されていません")
+                Text(stringResource(R.string.list_empty))
             }
         } else {
             LazyColumn(
@@ -98,7 +100,7 @@ fun DeviceListScreen(
                         headlineContent = { Text(device.name) },
                         supportingContent = { Text(device.ipAddress) },
                         trailingContent = {
-                            Text(device.macAddress.ifEmpty { "MAC未設定" })
+                            Text(device.macAddress.ifEmpty { stringResource(R.string.list_mac_not_set) })
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -116,19 +118,19 @@ fun DeviceListScreen(
     deviceToDelete?.let { device ->
         AlertDialog(
             onDismissRequest = { deviceToDelete = null },
-            title = { Text("削除の確認") },
-            text = { Text("「${device.name}」を削除しますか？") },
+            title = { Text(stringResource(R.string.list_delete_title)) },
+            text = { Text(stringResource(R.string.list_delete_message, device.name)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete(device)
                     deviceToDelete = null
                 }) {
-                    Text("削除")
+                    Text(stringResource(R.string.list_delete_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { deviceToDelete = null }) {
-                    Text("キャンセル")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
