@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iwadjp.wollight.R
 import com.iwadjp.wollight.model.Device
+import com.iwadjp.wollight.network.LanScanFailure
 import com.iwadjp.wollight.ui.viewmodel.ScanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +49,8 @@ fun ScanScreen(
 ) {
     val isScanning by viewModel.isScanning.collectAsState()
     val progress by viewModel.progress.collectAsState()
+    val targetCount by viewModel.targetCount.collectAsState()
+    val failure by viewModel.failure.collectAsState()
     val scannedDevices by viewModel.scannedDevices.collectAsState()
 
     var deviceToRegister by remember { mutableStateOf<Device?>(null) }
@@ -73,9 +76,9 @@ fun ScanScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (isScanning) {
-                Text(stringResource(R.string.scan_progress, progress, 254))
+                Text(stringResource(R.string.scan_progress, progress, targetCount))
                 LinearProgressIndicator(
-                    progress = { progress / 254f },
+                    progress = { if (targetCount > 0) progress.toFloat() / targetCount else 0f },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedButton(
@@ -118,7 +121,16 @@ fun ScanScreen(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(stringResource(R.string.scan_empty_hint))
+                    Text(stringResource(when (failure) {
+                        LanScanFailure.NO_LAN -> R.string.scan_no_lan
+                        LanScanFailure.NO_IPV4 -> R.string.scan_no_ipv4
+                        LanScanFailure.AMBIGUOUS_LAN -> R.string.scan_ambiguous_lan
+                        LanScanFailure.SUBNET_TOO_LARGE -> R.string.scan_subnet_too_large
+                        LanScanFailure.NO_TARGETS -> R.string.scan_no_targets
+                        LanScanFailure.NETWORK_UNAVAILABLE -> R.string.scan_network_unavailable
+                        LanScanFailure.NETWORK_CHANGED -> R.string.scan_network_changed
+                        null -> R.string.scan_empty_hint
+                    }))
                 }
             }
         }

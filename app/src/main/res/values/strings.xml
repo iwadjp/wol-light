@@ -24,6 +24,13 @@
     <string name="scan_register">Register</string>
     <string name="scan_empty_hint">Tap Start scan to begin</string>
     <string name="scan_register_dialog_title">Enter device name</string>
+    <string name="scan_no_lan">No Wi-Fi or Ethernet LAN available</string>
+    <string name="scan_no_ipv4">No IPv4 address available on the LAN</string>
+    <string name="scan_ambiguous_lan">Cannot safely choose a LAN network or IPv4 subnet</string>
+    <string name="scan_subnet_too_large">Subnet too large to scan safely (maximum 1,024 targets)</string>
+    <string name="scan_network_changed">LAN connection changed. Scan stopped; start again.</string>
+    <string name="scan_no_targets">No other IPv4 hosts to scan in this subnet</string>
+    <string name="scan_network_unavailable">LAN network information is unavailable. Try again.</string>
 
     <!-- Device detail screen -->
     <string name="detail_loading">Loading…</string>

@@ -2,19 +2,12 @@ package com.iwadjp.wollight.network
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.wifi.WifiManager
-import android.os.Build
-import android.text.format.Formatter
-import androidx.annotation.RequiresApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import java.net.Inet4Address
 import java.net.InetAddress
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 class IpScanner @Inject constructor(
@@ -22,23 +15,14 @@ class IpScanner @Inject constructor(
     private val netBiosResolver: NetBiosResolver,
     private val mdnsResolver: MdnsResolver,
 ) {
-
-    suspend fun scan(onProgress: (Int) -> Unit): List<Pair<String, String>> = withContext(Dispatchers.IO) {
-        val prefix = getSubnetPrefix() ?: return@withContext emptyList()
-        val counter = AtomicInteger(0)
-        coroutineScope {
-            (1..254).map { i ->
-                async {
-                    val ip = "$prefix.$i"
-                    val alive = runCatching { InetAddress.getByName(ip).isReachable(300) }
-                        .getOrDefault(false)
-                    onProgress(counter.incrementAndGet())
-                    if (alive) {
-                        val name = resolveHostname(ip)
-                        Pair(ip, name)
-                    } else null
-                }
-            }.awaitAll().filterNotNull()
+    suspend fun scan(onProgress: (Int, Int) -> Unit): List<Pair<String, String>> = withContext(Dispatchers.IO) {
+        val monitor = newMonitor()
+        try {
+            scanLanTargets(monitor.discover(), monitor.tracker, onProgress,
+                probe = { ip -> runCatching { InetAddress.getByName(ip).isReachable(300) }.getOrDefault(false) },
+                resolve = { ip -> resolveHostname(ip) })
+        } finally {
+            monitor.close()
         }
     }
 
@@ -48,28 +32,14 @@ class IpScanner @Inject constructor(
         netbios.await() ?: mdns.await() ?: ip
     }
 
-    private fun getSubnetPrefix(): String? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getSubnetPrefixApi31()
-        } else {
-            getSubnetPrefixLegacy()
-        }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun getSubnetPrefixApi31(): String? {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val props = cm.getLinkProperties(cm.activeNetwork ?: return null) ?: return null
-        val addr = props.linkAddresses
-            .firstOrNull { it.address is Inet4Address && !it.address.isLoopbackAddress }
-            ?.address?.hostAddress ?: return null
-        return addr.substringBeforeLast(".")
+    private fun newMonitor(): LanNetworkMonitor {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: throw LanScanException(LanScanFailure.NETWORK_UNAVAILABLE)
+        return LanNetworkMonitor(cm)
     }
 
-    @Suppress("DEPRECATION")
-    private fun getSubnetPrefixLegacy(): String? {
-        val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val ipInt = wm.connectionInfo.ipAddress
-        if (ipInt == 0) return null
-        return Formatter.formatIpAddress(ipInt).substringBeforeLast(".")
+    internal suspend fun currentLanSubnet(): IpSubnet {
+        val monitor = newMonitor()
+        return try { monitor.discover() } finally { monitor.close() }
     }
 }

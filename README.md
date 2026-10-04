@@ -15,9 +15,12 @@ regularly. It was built to replace the Wake-on-LAN feature of Fing.
 
 ### Features
 
-- **LAN scan**: detects the current Wi-Fi subnet, probes addresses 1–254 in
-  parallel and lists reachable hosts. Host names are looked up over NetBIOS and
-  mDNS; the IP address is shown when no name is found.
+- **LAN scan**: selects a non-VPN Wi-Fi or Ethernet IPv4 subnet and uses its
+  actual CIDR prefix. Network, broadcast and the device's own address are excluded.
+  Scans up to 1,024 peers with bounded concurrency and progress based on the target
+  count; larger or ambiguous networks are rejected instead of silently narrowed.
+  Host names are looked up over NetBIOS and mDNS; the IP address is shown when no
+  name is found. A VPN may still restrict LAN reachability.
 - **Device registration**: register a device from the scan results with a name
   of your choice. Name, MAC address, broadcast address and port can be edited,
   and devices can be deleted. The list is kept on the device across restarts.
@@ -95,8 +98,10 @@ Fing の Wake on LAN 機能を代替する Android アプリ。
 ## 機能
 
 ### LAN スキャン
-- 現在接続中の WiFi サブネットを自動検出
-- 1〜254 のIPアドレスを並列スキャン
+- VPNを除くWi-FiまたはEthernetのIPv4サブネットを選び、実際のCIDR prefixを使用
+- network / broadcast / 自端末アドレスを除外し、最大1,024対象を並列数制限付きでスキャン
+- 進捗は実際の対象数を使用。巨大または判断不能なサブネットは縮小せずエラー表示
+- VPNによってLANへの到達性が制限される場合がある
 - 生存確認済みのIPアドレスを一覧表示
 - ホスト名取得を試みる（NetBIOS / mDNS）。取得できない場合はIPアドレスを表示
 

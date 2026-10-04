@@ -24,6 +24,12 @@
     <string name="scan_register">登録</string>
     <string name="scan_empty_hint">スキャン開始ボタンを押してください</string>
     <string name="scan_register_dialog_title">デバイス名を入力</string>
+    <string name="scan_no_lan">Wi-FiまたはEthernetのLANがありません</string>
+    <string name="scan_no_ipv4">LANにIPv4アドレスがありません</string>
+    <string name="scan_ambiguous_lan">LANまたはIPv4サブネットを安全に選択できません</string>
+    <string name="scan_subnet_too_large">サブネットが大きすぎるためスキャンできません（上限1,024対象）</string>
+    <string name="scan_no_targets">このサブネットにスキャン対象のIPv4ホストがありません</string>
+    <string name="scan_network_unavailable">LAN情報を取得できません。再試行してください。</string>
 
     <!-- Device detail screen -->
     <string name="detail_loading">読み込み中...</string>
@@ -65,4 +71,5 @@
     <string name="message_wol_sent">WoL送信完了</string>
     <string name="message_wol_failed">送信失敗: %1$s</string>
     <string name="message_ip_update_failed">IPアドレスの更新に失敗しました: %1$s</string>
+    <string name="scan_network_changed">LAN接続が変わったためスキャンを停止しました。再度開始してください。</string>
 </resources>

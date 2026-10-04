@@ -1,0 +1,4 @@
+- Fixed LAN scan subnet selection when a VPN is active.
+- Scan uses the actual Wi-Fi or Ethernet IPv4 subnet and excludes the device itself.
+- Progress reflects the actual target count. Scans stop safely on network changes,
+  ambiguous networks or subnets exceeding 1,024 targets.
