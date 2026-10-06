@@ -83,6 +83,8 @@ official GitHub Release above.
 
 On macOS/Linux, use `./gradlew` instead of `.\gradlew.bat`.
 
+Before publishing a release APK, follow the [release provenance and reproducibility checks](scripts/RELEASE.md).
+
 ### License
 
 [MIT License](LICENSE)
