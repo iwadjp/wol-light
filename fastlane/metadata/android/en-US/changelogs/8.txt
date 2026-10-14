@@ -1,0 +1,4 @@
+- Added boot monitoring after sending Wake-on-LAN.
+- Pings the device about every 2 seconds and stops at the first reply or after 60 seconds.
+- Shows progress and result, and can be cancelled. A reply only confirms the
+  network responds, not that the OS has finished starting.

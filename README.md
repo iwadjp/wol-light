@@ -26,6 +26,10 @@ regularly. It was built to replace the Wake-on-LAN feature of Fing.
   and devices can be deleted. The list is kept on the device across restarts.
 - **Wake-on-LAN**: sends a standard 102-byte magic packet as a UDP broadcast
   (default `255.255.255.255`, port `9`; the port is configurable).
+- **Boot monitoring**: after a magic packet is sent, pings the device about every
+  2 seconds and stops at the first reply or after 60 seconds, showing progress and
+  the result. It can be cancelled. A ping reply only confirms that the network
+  responds, not that the OS or apps have finished starting.
 - **Ping**: sends ten pings at one-second intervals, shows each result with its
   response time, then a summary (successes and average time).
 - **Online / offline indicator**: shown per device in the list, based on ping
@@ -131,6 +135,8 @@ Fing の Wake on LAN 機能を代替する Android アプリ。
 - Magic Packet（102バイト）を UDP ブロードキャストで送信
 - 宛先: `255.255.255.255`、ポート: `9`（変更可能）
 - 送信結果を Snackbar で通知
+- 送信成功後、約2秒間隔で Ping し、最初の応答または60秒経過まで起動を監視（進捗・結果を表示、中止可能）
+- Ping 応答はネットワーク応答の確認であり、OS・アプリの起動完了を保証しない
 
 ### Ping 送信
 - 1秒間隔で10回 Ping を送信
@@ -230,7 +236,7 @@ UDP はコネクションレスのため、Magic Packet が対象PCに届いた�
 WoL はブロードキャストパケットのため、同一LAN内のデバイスのみが対象。外部ネットワークから起動する場合は VPN またはポートフォワードの設定が別途必要。
 
 ### IP アドレス復旧（v1.0.1〜）
-IP アドレス復旧には登録済み MAC アドレスが必要。復旧はデバイス詳細画面での Ping 試行が失敗した場合にのみ実行され、登録アドレスの更新には明示的な確認操作が必要。
+IP アドレス復旧には登録済み MAC アドレスが必要。復旧はデバイス詳細画面での Ping 試行（起動監視を含む）が失敗した場合にのみ実行され、登録アドレスの更新には明示的な確認操作が必要。
 
 ### WoL の成否は対象PC側の設定に依存する
 WolLight は標準的な WoL Magic Packet を送信するだけであり、対象PCが実際に起動できるかどうかは、対象PC側の BIOS/UEFI 設定・NIC の WoL 対応・Windows の電源管理設定（特に高速スタートアップ）に依存する。WolLight 側の不具合ではなく、環境依存の制約として扱う。
