@@ -10,4 +10,7 @@ class PingUseCase @Inject constructor(private val pingSender: PingSender) {
 
     operator fun invoke(device: Device): Flow<PingResult> =
         pingSender.sendPing(device.ipAddress)
+
+    suspend fun pingOnce(device: Device, timeoutMs: Long, attemptNumber: Int): PingResult =
+        pingSender.pingOnce(device.ipAddress, timeoutMs, attemptNumber)
 }

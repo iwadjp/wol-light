@@ -50,6 +50,23 @@
     <string name="detail_ping_summary">%1$d/10 succeeded  Avg %2$d ms</string>
     <string name="detail_ping_summary_none">0/10 succeeded</string>
 
+    <string name="boot_monitor_running">Checking startup</string>
+    <string name="boot_monitor_running_sub">Elapsed since WoL · limit %1$d s</string>
+    <string name="boot_monitor_responded">Ping reply received</string>
+    <string name="boot_monitor_responded_sub">From WoL send to first reply</string>
+    <string name="boot_monitor_timeout">Startup not confirmed</string>
+    <string name="boot_monitor_timeout_sub">No ping reply within %1$d s</string>
+    <string name="boot_monitor_elapsed">%1$d s</string>
+    <string name="boot_monitor_legend_ok">Reply</string>
+    <string name="boot_monitor_legend_ng">No reply</string>
+    <string name="boot_monitor_legend_todo">Not sent</string>
+    <string name="boot_monitor_foot_running">Attempt %1$d in progress…</string>
+    <string name="boot_monitor_foot_responded">Reply on attempt %1$d · %2$d ms</string>
+    <string name="boot_monitor_foot_timeout">No reply (%1$d attempts)</string>
+    <string name="boot_monitor_cancel">Cancel</string>
+    <string name="boot_monitor_note_responded">A ping reply only confirms the network responds. It does not guarantee the OS or apps have finished starting.</string>
+    <string name="boot_monitor_note_timeout">You can resend WoL or run a manual Ping to check again.</string>
+
     <!-- Device detail: DEBUG-only stale IP simulation -->
     <string name="detail_debug_stale_ip_toggle">Debug: simulate a temporary stale IP</string>
     <string name="detail_debug_stale_ip_active">Testing with temporary IP: %1$s\n(Registered data is unchanged. Only ping/search use this IP.)</string>

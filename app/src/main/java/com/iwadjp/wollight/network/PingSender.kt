@@ -1,10 +1,12 @@
 package com.iwadjp.wollight.network
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import java.net.InetAddress
 import javax.inject.Inject
 
@@ -26,4 +28,18 @@ class PingSender @Inject constructor() {
             }
         }
     }.flowOn(Dispatchers.IO)
+
+    /** 起動監視用の1回分のPing。キャンセルは通信失敗に変換せず再送出する。 */
+    suspend fun pingOnce(ipAddress: String, timeoutMs: Long, attemptNumber: Int): PingResult =
+        withContext(Dispatchers.IO) {
+            val start = System.currentTimeMillis()
+            try {
+                val reachable = InetAddress.getByName(ipAddress).isReachable(timeoutMs.toInt())
+                PingResult(reachable, System.currentTimeMillis() - start, attemptNumber)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                PingResult(false, 0L, attemptNumber)
+            }
+        }
 }

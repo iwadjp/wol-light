@@ -50,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.iwadjp.wollight.BuildConfig
 import com.iwadjp.wollight.R
 import com.iwadjp.wollight.model.Device
+import com.iwadjp.wollight.ui.viewmodel.BootMonitorState
 import com.iwadjp.wollight.ui.viewmodel.DebugStaleIpState
 import com.iwadjp.wollight.ui.viewmodel.DeviceDetailMessage
 import com.iwadjp.wollight.ui.viewmodel.DeviceDetailViewModel
@@ -68,6 +69,7 @@ fun DeviceDetailScreen(
     val wolMessage by viewModel.wolMessage.collectAsState()
     val pingResults by viewModel.pingResults.collectAsState()
     val isPinging by viewModel.isPinging.collectAsState()
+    val bootMonitor by viewModel.bootMonitor.collectAsState()
     val isRecoveringIp by viewModel.isRecoveringIp.collectAsState()
     val ipDriftCandidate by viewModel.ipDriftCandidate.collectAsState()
     val debugStaleIpState by viewModel.debugStaleIpState.collectAsState()
@@ -180,14 +182,14 @@ fun DeviceDetailScreen(
             ) {
                 Button(
                     onClick = { viewModel.sendWol() },
-                    enabled = !isLoading && displayed.macAddress.isNotEmpty(),
+                    enabled = !isLoading && !bootMonitor.isActive && displayed.macAddress.isNotEmpty(),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.detail_send_wol))
                 }
                 OutlinedButton(
                     onClick = { viewModel.sendPing() },
-                    enabled = !isPinging,
+                    enabled = !isPinging && !bootMonitor.isActive,
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(if (isPinging) R.string.detail_pinging else R.string.detail_ping))
@@ -239,7 +241,12 @@ fun DeviceDetailScreen(
                 }
             }
 
-            if (pingResults.isNotEmpty() || isPinging) {
+            val showMonitorPanel = bootMonitor is BootMonitorState.Running ||
+                bootMonitor is BootMonitorState.Responded ||
+                bootMonitor is BootMonitorState.TimedOut
+            if (showMonitorPanel) {
+                BootMonitorPanel(state = bootMonitor, onCancel = { viewModel.cancelBootMonitor() })
+            } else if (pingResults.isNotEmpty() || isPinging) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(10.dp)) {
                         val pairs = pingResults.chunked(2)

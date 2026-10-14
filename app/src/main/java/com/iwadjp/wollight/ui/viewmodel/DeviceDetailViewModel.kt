@@ -1,5 +1,6 @@
 package com.iwadjp.wollight.ui.viewmodel
 
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iwadjp.wollight.BuildConfig
@@ -13,7 +14,10 @@ import com.iwadjp.wollight.domain.usecase.LanScanUseCase
 import com.iwadjp.wollight.domain.usecase.PingUseCase
 import com.iwadjp.wollight.domain.usecase.WolUseCase
 import com.iwadjp.wollight.model.Device
+import com.iwadjp.wollight.network.BootMonitorConfig
+import com.iwadjp.wollight.network.BootMonitorOutcome
 import com.iwadjp.wollight.network.PingResult
+import com.iwadjp.wollight.network.runBootMonitor
 import com.iwadjp.wollight.util.MacAddressNormalizer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -37,6 +41,33 @@ sealed class DebugStaleIpState {
     data object Generating : DebugStaleIpState()
     data class On(val staleIpAddress: String) : DebugStaleIpState()
     data object Unavailable : DebugStaleIpState()
+}
+
+/**
+ * WoL送信後の起動監視の状態。手動Ping(pingResults/isPinging)とは独立。
+ * キャンセル・WoL送信失敗はIdleへ戻る（失敗はSnackbarで通知）。
+ */
+sealed class BootMonitorState {
+    data object Idle : BootMonitorState()
+    /** WoL送信中。Ping監視はまだ始まっていない。 */
+    data object Starting : BootMonitorState()
+    data class Running(
+        val startedAt: Long,
+        val attempts: List<PingResult>,
+        val elapsedMs: Long
+    ) : BootMonitorState()
+    data class Responded(
+        val startedAt: Long,
+        val attempts: List<PingResult>,
+        val elapsedMs: Long
+    ) : BootMonitorState()
+    data class TimedOut(
+        val startedAt: Long,
+        val attempts: List<PingResult>,
+        val elapsedMs: Long
+    ) : BootMonitorState()
+
+    val isActive: Boolean get() = this is Starting || this is Running
 }
 
 /**
@@ -74,6 +105,9 @@ class DeviceDetailViewModel @Inject constructor(
     private val _isPinging = MutableStateFlow(false)
     val isPinging: StateFlow<Boolean> = _isPinging.asStateFlow()
 
+    private val _bootMonitor = MutableStateFlow<BootMonitorState>(BootMonitorState.Idle)
+    val bootMonitor: StateFlow<BootMonitorState> = _bootMonitor.asStateFlow()
+
     private val _isRecoveringIp = MutableStateFlow(false)
     val isRecoveringIp: StateFlow<Boolean> = _isRecoveringIp.asStateFlow()
 
@@ -85,6 +119,10 @@ class DeviceDetailViewModel @Inject constructor(
 
     private var loadJob: Job? = null
     private var pingJob: Job? = null
+    private var monitorJob: Job? = null
+    /** 監視の世代。キャンセル済み/古い監視の遅延結果でUIを書き換えないための照合に使う。 */
+    private var monitorRunId = 0
+    private var burstGeneration = 0
     private var recoveryScanJob: Job? = null
     private var debugStaleIpJob: Job? = null
 
@@ -100,28 +138,84 @@ class DeviceDetailViewModel @Inject constructor(
 
     fun sendWol() {
         val current = _device.value ?: return
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = wolUseCase(current)
-            result.onSuccess { _wolMessage.value = DeviceDetailMessage.WolSent }
-                .onFailure { _wolMessage.value = DeviceDetailMessage.WolFailed(it.message) }
-            _isLoading.value = false
+        // 多重実行防止: 送信中・監視中は新規開始しない（UI無効化に加えVM側でも保証）。
+        if (_bootMonitor.value.isActive || _isLoading.value) return
+        val runId = ++monitorRunId
+        _bootMonitor.value = BootMonitorState.Starting
+        monitorJob = viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                val result = try {
+                    wolUseCase(current)
+                } finally {
+                    _isLoading.value = false
+                }
+                result.onSuccess { _wolMessage.value = DeviceDetailMessage.WolSent }
+                    .onFailure { _wolMessage.value = DeviceDetailMessage.WolFailed(it.message) }
 
-            // Wake送信自体の成否と、送信後の起動確認Pingの成否は別問題として扱う。
-            // magic packet送信が成功した場合のみ、起動確認としてPingを実行する。
-            if (result.isSuccess) {
+                // Wake送信自体の成否と、送信後の起動確認の成否は別問題として扱う。
+                // magic packet送信が成功した場合のみ、起動監視を開始する。
+                if (result.isFailure) {
+                    if (runId == monitorRunId) _bootMonitor.value = BootMonitorState.Idle
+                    return@launch
+                }
                 val pingTarget = effectiveDeviceForPing(current)
                 pingJob?.cancel()
-                pingJob = viewModelScope.launch {
-                    val anySuccess = executePingBurst(pingTarget)
-                    if (!anySuccess) attemptIpDriftRecovery(pingTarget)
+                _pingResults.value = emptyList()
+                _isPinging.value = false
+                runBootMonitorFlow(runId, pingTarget)
+            } finally {
+                // キャンセル等で終端状態に到達しなかった場合は操作可能な状態へ戻す。
+                if (runId == monitorRunId && _bootMonitor.value.isActive) {
+                    _bootMonitor.value = BootMonitorState.Idle
                 }
             }
         }
     }
 
+    private suspend fun runBootMonitorFlow(runId: Int, target: Device) {
+        val startedAt = SystemClock.elapsedRealtime()
+        val attempts = mutableListOf<PingResult>()
+        _bootMonitor.value = BootMonitorState.Running(startedAt, emptyList(), 0L)
+        val outcome = runBootMonitor(
+            startedAt = startedAt,
+            now = { SystemClock.elapsedRealtime() },
+            pingOnce = { timeoutMs, attempt -> pingUseCase.pingOnce(target, timeoutMs, attempt) },
+            onAttempt = { result, elapsedMs ->
+                if (runId != monitorRunId) return@runBootMonitor
+                attempts += result
+                onlineStatusStore.updateWithResult(target.id, result.reachable)
+                _bootMonitor.value = BootMonitorState.Running(startedAt, attempts.toList(), elapsedMs)
+            }
+        )
+        if (runId != monitorRunId) return
+        val last = _bootMonitor.value as? BootMonitorState.Running ?: return
+        when (outcome) {
+            BootMonitorOutcome.Responded ->
+                _bootMonitor.value = BootMonitorState.Responded(startedAt, last.attempts, last.elapsedMs)
+            BootMonitorOutcome.TimedOut -> {
+                _bootMonitor.value = BootMonitorState.TimedOut(
+                    startedAt, last.attempts, BootMonitorConfig.DEADLINE_MS
+                )
+                // タイムアウト時のみ既存条件でIPドリフト復旧を検討する。
+                attemptIpDriftRecovery(target)
+            }
+        }
+    }
+
+    /** 起動監視の中止。通信失敗ではなくユーザー操作として扱い、Idleへ戻す。 */
+    fun cancelBootMonitor() {
+        if (_bootMonitor.value !is BootMonitorState.Running) return
+        monitorRunId++ // 遅延して返るPing結果を無効化
+        monitorJob?.cancel()
+        _bootMonitor.value = BootMonitorState.Idle
+    }
+
     fun sendPing() {
         val current = _device.value ?: return
+        if (_bootMonitor.value.isActive) return
+        // 手動Ping開始時は、前回の監視結果パネルを閉じて手動表示へ戻す。
+        _bootMonitor.value = BootMonitorState.Idle
         val pingTarget = effectiveDeviceForPing(current)
         pingJob?.cancel()
         pingJob = viewModelScope.launch {
@@ -165,17 +259,22 @@ class DeviceDetailViewModel @Inject constructor(
     }
 
     private suspend fun executePingBurst(device: Device): Boolean {
+        val generation = ++burstGeneration
         _pingResults.value = emptyList()
         _isPinging.value = true
         var anySuccess = false
-        pingUseCase(device)
-            .catch { }
-            .collect { result ->
-                _pingResults.update { it + result }
-                onlineStatusStore.updateWithResult(device.id, result.reachable)
-                if (result.reachable) anySuccess = true
-            }
-        _isPinging.value = false
+        try {
+            pingUseCase(device)
+                .catch { }
+                .collect { result ->
+                    _pingResults.update { it + result }
+                    onlineStatusStore.updateWithResult(device.id, result.reachable)
+                    if (result.reachable) anySuccess = true
+                }
+        } finally {
+            // キャンセル時も固着させない。新しいburstが走っている場合は触らない。
+            if (generation == burstGeneration) _isPinging.value = false
+        }
         return anySuccess
     }
 
@@ -218,7 +317,9 @@ class DeviceDetailViewModel @Inject constructor(
             val updated = current.copy(ipAddress = candidate.newIpAddress)
             val updateResult = runCatching { repository.update(updated) }
             updateResult.onFailure { _wolMessage.value = DeviceDetailMessage.IpUpdateFailed(it.message) }
-            if (updateResult.isSuccess) {
+            if (updateResult.isSuccess && !_bootMonitor.value.isActive) {
+                // IP更新後の再Pingは従来どおり手動と同じ10回。監視結果パネルは閉じる。
+                _bootMonitor.value = BootMonitorState.Idle
                 pingJob?.cancel()
                 pingJob = viewModelScope.launch { executePingBurst(updated) }
             }
@@ -240,6 +341,8 @@ class DeviceDetailViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         pingJob?.cancel()
+        monitorRunId++
+        monitorJob?.cancel()
         loadJob?.cancel()
         recoveryScanJob?.cancel()
         debugStaleIpJob?.cancel()

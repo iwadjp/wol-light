@@ -49,6 +49,23 @@
     <string name="detail_ping_summary">%1$d/10成功  平均%2$dms</string>
     <string name="detail_ping_summary_none">0/10成功</string>
 
+    <string name="boot_monitor_running">起動確認中</string>
+    <string name="boot_monitor_running_sub">WoL送信からの経過 · 上限%1$d秒</string>
+    <string name="boot_monitor_responded">Ping応答あり</string>
+    <string name="boot_monitor_responded_sub">WoL送信から初回応答まで</string>
+    <string name="boot_monitor_timeout">起動未確認</string>
+    <string name="boot_monitor_timeout_sub">%1$d秒以内にPing応答なし</string>
+    <string name="boot_monitor_elapsed">%1$d秒</string>
+    <string name="boot_monitor_legend_ok">応答</string>
+    <string name="boot_monitor_legend_ng">応答なし</string>
+    <string name="boot_monitor_legend_todo">未実施</string>
+    <string name="boot_monitor_foot_running">%1$d回目を確認中…</string>
+    <string name="boot_monitor_foot_responded">%1$d回目で応答 · %2$dms</string>
+    <string name="boot_monitor_foot_timeout">応答なし（%1$d回）</string>
+    <string name="boot_monitor_cancel">中止</string>
+    <string name="boot_monitor_note_responded">Ping応答はネットワーク応答のみです。OS・アプリの起動完了は保証しません。</string>
+    <string name="boot_monitor_note_timeout">WoL再送信、または手動Pingで再確認できます。</string>
+
     <!-- Device detail: DEBUG-only stale IP simulation -->
     <string name="detail_debug_stale_ip_toggle">Debug: 仮のstale IPをシミュレート</string>
     <string name="detail_debug_stale_ip_active">Testing with temporary IP: %1$s\n（登録情報は変更していません。Ping/検索だけがこのIPを使います）</string>
