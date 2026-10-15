@@ -1,0 +1,2 @@
+- Fixed the boot monitor legend so its markers match the ping cells (check, cross, empty frame).
+- Removed a stray dot at the right end of the progress bar.
