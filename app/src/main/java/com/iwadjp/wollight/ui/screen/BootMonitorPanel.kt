@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -28,7 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iwadjp.wollight.R
@@ -154,7 +158,8 @@ fun BootMonitorPanel(
 
             LinearProgressIndicator(
                 progress = { progress.coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = {} // 右端の既定ドット（stop indicator）は意図しない描画のため非表示
             )
 
             val cells = BootMonitorConfig.DISPLAY_CELLS
@@ -179,10 +184,16 @@ fun BootMonitorPanel(
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(stringResource(R.string.boot_monitor_legend_ok), fontSize = 10.sp)
-                Text(stringResource(R.string.boot_monitor_legend_ng), fontSize = 10.sp)
-                Text(stringResource(R.string.boot_monitor_legend_todo), fontSize = 10.sp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LegendItem(CellKind.Ok, stringResource(R.string.boot_monitor_legend_ok))
+                LegendItem(CellKind.Ng, stringResource(R.string.boot_monitor_legend_ng))
+                LegendItem(
+                    if (running) CellKind.Todo else CellKind.Skipped,
+                    stringResource(R.string.boot_monitor_legend_todo)
+                )
             }
 
             HorizontalDivider()
@@ -206,6 +217,43 @@ fun BootMonitorPanel(
                 else -> Unit
             }
         }
+    }
+}
+
+@Composable
+private fun LegendItem(kind: CellKind, label: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LegendMarker(kind)
+        Text(label, fontSize = 10.sp)
+    }
+}
+
+/** 凡例用の小型マーカー。Pingセルと同じ色・記号で、16dp枠の中央に記号を収める。 */
+@Composable
+private fun LegendMarker(kind: CellKind) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(4.dp)
+    val box = Modifier.size(16.dp)
+    val glyphStyle = TextStyle(
+        fontSize = 10.sp,
+        lineHeight = 10.sp,
+        platformStyle = PlatformTextStyle(includeFontPadding = false),
+        lineHeightStyle = LineHeightStyle(
+            alignment = LineHeightStyle.Alignment.Center,
+            trim = LineHeightStyle.Trim.Both
+        )
+    )
+    when (kind) {
+        CellKind.Ok -> Box(box.background(scheme.primary, shape), contentAlignment = Alignment.Center) {
+            Text("✓", color = scheme.onPrimary, style = glyphStyle)
+        }
+        CellKind.Ng -> Box(box.background(scheme.errorContainer, shape), contentAlignment = Alignment.Center) {
+            Text("×", color = scheme.error, style = glyphStyle)
+        }
+        else -> StripCell(kind, box)
     }
 }
 
